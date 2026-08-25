@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.vscode/
+
+# Veri setleri (repo dışında tutulur, model ağırlığı Git LFS ile takip ediliyor)
+train/
+valid/
+test/
+testdata/
