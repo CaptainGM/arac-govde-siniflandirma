@@ -1,8 +1,12 @@
 __pycache__/
 *.pyc
 .venv/
+.venv-1/
 venv/
 .vscode/
+app_backup_legacy.py
+*.zip
+
 
 # Veri setleri (repo dışında tutulur, model ağırlığı Git LFS ile takip ediliyor)
 train/
