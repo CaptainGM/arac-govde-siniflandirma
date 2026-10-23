@@ -6,6 +6,8 @@ venv/
 .vscode/
 app_backup_legacy.py
 *.zip
+rapor.tex
+230201026_230201108/
 
 
 # Veri setleri (repo dışında tutulur, model ağırlığı Git LFS ile takip ediliyor)

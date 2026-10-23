@@ -1,7 +1,6 @@
 """
 🚗 AutoVision // Araç Gövde Tipi Sınıflandırma ve XAI Teşhis Kokpiti
 ResNet-50 Transfer Learning • Grad-CAM Açıklanabilir Yapay Zeka • TTA Çıkarım Motoru
-Kocaeli Üniversitesi Bilgisayar Mühendisliği • YazLab 2 Proje 3 (2026 Sürümü)
 """
 
 import os
@@ -38,14 +37,14 @@ from transforms_config import (
 # SAYFA KONFİGÜRASYONU
 # ============================================================================
 st.set_page_config(
-    page_title="AutoVision AI • Araç Sınıflandırma",
+    page_title="AutoVision AI • Araç Gövde Sınıflandırma",
     page_icon="🚗",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
 # ============================================================================
-# MODERN VE PREMIUM KARANLIK TEMA (DRIBBLE & LINEAR STİLİ, IZGARASIZ, AKICI)
+# MODERN VE FERAH KOYU TEMA (GÖZ YORMAYAN, AKICI VE GENİŞLETİLMİŞ ALAN)
 # ============================================================================
 st.markdown("""
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -53,17 +52,15 @@ st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-    /* TEMEL DEĞİŞKENLER VE SIFIRLAMA */
+    /* TEMEL DEĞİŞKENLER */
     :root {
-        --bg-main: #0a0e17;
-        --bg-panel: rgba(16, 24, 40, 0.7);
-        --bg-card: rgba(21, 31, 50, 0.65);
-        --bg-card-hover: rgba(28, 41, 66, 0.85);
+        --bg-main: #0b0f19;
+        --bg-panel: rgba(17, 24, 39, 0.75);
+        --bg-card: rgba(23, 32, 51, 0.65);
         --accent-cyan: #00d2ff;
         --accent-blue: #3b82f6;
         --accent-purple: #8b5cf6;
         --accent-emerald: #10b981;
-        --accent-amber: #f59e0b;
         --border-subtle: rgba(255, 255, 255, 0.08);
         --border-active: rgba(0, 210, 255, 0.4);
         --text-primary: #f8fafc;
@@ -75,23 +72,22 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
     
-    /* TEMİZ, DERİN, GÖZÜ YORMAYAN KOYU ARKA PLAN (IZGARA YOK) */
+    /* GÖZ YORMAYAN, PÜRÜZSÜZ KOYU ARKA PLAN */
     .stApp {
         background-color: var(--bg-main);
         background-image: 
-            radial-gradient(circle at 10% 10%, rgba(0, 210, 255, 0.06) 0%, transparent 45%),
-            radial-gradient(circle at 90% 90%, rgba(139, 92, 246, 0.06) 0%, transparent 45%),
-            radial-gradient(circle at 50% 50%, rgba(16, 24, 40, 0.5) 0%, transparent 70%);
+            radial-gradient(circle at 12% 12%, rgba(0, 210, 255, 0.06) 0%, transparent 50%),
+            radial-gradient(circle at 88% 88%, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
         color: var(--text-primary);
     }
     
     .block-container {
         padding-top: 1.8rem !important;
-        padding-bottom: 3rem !important;
-        max-width: 95% !important;
+        padding-bottom: 2.5rem !important;
+        max-width: 96% !important;
     }
     
-    /* ÜST BAŞLIK VE SİSTEM ÇUBUĞU */
+    /* ÜST BAŞLIK */
     .app-header {
         display: flex;
         justify-content: space-between;
@@ -102,7 +98,7 @@ st.markdown("""
         border-radius: 20px;
         backdrop-filter: blur(24px);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-        margin-bottom: 24px;
+        margin-bottom: 22px;
         flex-wrap: wrap;
         gap: 15px;
     }
@@ -127,7 +123,7 @@ st.markdown("""
     
     .brand-title {
         font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.75rem;
+        font-size: 1.8rem;
         font-weight: 700;
         letter-spacing: -0.02em;
         background: linear-gradient(135deg, #ffffff 0%, #38bdf8 100%);
@@ -138,7 +134,7 @@ st.markdown("""
     }
     
     .brand-desc {
-        font-size: 0.82rem;
+        font-size: 0.85rem;
         color: var(--text-secondary);
         margin-top: 3px;
     }
@@ -159,7 +155,7 @@ st.markdown("""
         background: rgba(255, 255, 255, 0.04);
         border: 1px solid var(--border-subtle);
         font-family: 'JetBrains Mono', monospace;
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         color: var(--text-secondary);
         font-weight: 500;
     }
@@ -181,7 +177,7 @@ st.markdown("""
         backdrop-filter: blur(20px);
         box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
         margin-bottom: 20px;
-        transition: border-color 0.25s ease, transform 0.25s ease;
+        transition: border-color 0.25s ease;
     }
     
     .glass-card:hover {
@@ -199,15 +195,15 @@ st.markdown("""
         gap: 8px;
     }
 
-    /* TAHMİN SONUÇ VİTRİNİ (HERO BANNER) */
+    /* TAHMİN SONUÇ VİTRİNİ */
     .pred-hero-banner {
-        background: linear-gradient(135deg, rgba(0, 210, 255, 0.12) 0%, rgba(59, 130, 246, 0.15) 100%);
+        background: linear-gradient(135deg, rgba(0, 210, 255, 0.12) 0%, rgba(59, 130, 246, 0.16) 100%);
         border: 1px solid rgba(0, 210, 255, 0.35);
         border-radius: 20px;
-        padding: 26px 22px;
+        padding: 24px 22px;
         text-align: center;
         box-shadow: 0 15px 35px rgba(0, 210, 255, 0.1);
-        margin-bottom: 20px;
+        margin-bottom: 18px;
     }
     
     .pred-category-tag {
@@ -234,7 +230,7 @@ st.markdown("""
         justify-content: center;
         align-items: center;
         gap: 32px;
-        margin-top: 12px;
+        margin-top: 10px;
         flex-wrap: wrap;
     }
     
@@ -259,7 +255,7 @@ st.markdown("""
     }
     
     .pred-rationale {
-        margin-top: 16px;
+        margin-top: 14px;
         padding: 12px 18px;
         background: rgba(0, 0, 0, 0.3);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -273,18 +269,18 @@ st.markdown("""
     /* SEKMELER */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
-        background: rgba(16, 24, 40, 0.7);
+        background: rgba(17, 24, 39, 0.7);
         padding: 6px;
         border-radius: 16px;
         border: 1px solid var(--border-subtle);
-        margin-bottom: 24px;
+        margin-bottom: 22px;
     }
     
     .stTabs [data-baseweb="tab"] {
-        padding: 11px 22px;
+        padding: 11px 24px;
         border-radius: 12px;
         font-weight: 600;
-        font-size: 0.92rem;
+        font-size: 0.95rem;
         color: var(--text-secondary);
         border: none;
         transition: all 0.2s ease;
@@ -316,134 +312,52 @@ st.markdown("""
         box-shadow: 0 8px 25px rgba(14, 165, 233, 0.55);
         border-color: rgba(255, 255, 255, 0.5);
     }
-
-    /* 8 GÖVDE TİPİ KATALOG KARTI */
-    .archetype-box {
-        background: var(--bg-card);
-        border: 1px solid var(--border-subtle);
-        border-radius: 18px;
-        overflow: hidden;
-        transition: transform 0.3s ease, border-color 0.3s ease;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .archetype-box:hover {
-        transform: translateY(-4px);
-        border-color: var(--accent-cyan);
-        box-shadow: 0 15px 35px rgba(0, 210, 255, 0.15);
-    }
-    
-    .archetype-img {
-        width: 100%;
-        height: 180px;
-        object-fit: cover;
-    }
-    
-    .archetype-content {
-        padding: 18px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        flex-grow: 1;
-    }
-    
-    .archetype-name {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #ffffff;
-        margin: 0 0 6px 0;
-    }
-    
-    .archetype-desc {
-        font-size: 0.84rem;
-        color: var(--text-secondary);
-        line-height: 1.5;
-        margin-bottom: 12px;
-    }
-    
-    .archetype-tag {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 6px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        font-size: 0.74rem;
-        color: #94a3b8;
-        margin: 2px 2px;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 
 # ============================================================================
-# ARAÇ GÖVDE TİPLERİ VE BİLGİ BANKASI (TÜRKÇE)
+# ARAÇ GÖVDE TİPLERİ VE BİLGİ BANKASI
 # ============================================================================
 CLASS_METADATA = {
     "SUV": {
-        "title": "SUV (Arazi & Şehir Aracı)",
-        "asset": "assets/classes/suv.jpg",
+        "title": "SUV (Sport Utility Vehicle)",
         "description": "Yüksek sürüş pozisyonu, yüksek taban mesafesi, 2-kutu gövde ve geniş bagaj hacmi.",
-        "key_features": ["Yüksek Zemin Açıklığı", "Geniş Çamurluklar", "2-Kutu Profil"],
-        "color": "#38bdf8",
         "rationale": "Yüksek şasi zemin boşluğu, geniş çamurluk açıklığı ve yüksek tavan çizgisi tespit edildi."
     },
     "SEDAN": {
         "title": "Sedan (Klasik 3-Kutu)",
-        "asset": "assets/classes/sedan.jpg",
         "description": "Belirgin motor kompartımanı, yolcu kabini ve çıkıntılı bagaj bölmesi olmak üzere 3 kutulu klasik gövde yapısı.",
-        "key_features": ["3-Kutu Gövde", "Bağımsız Bagaj Çıkıntısı", "Eğimli C-Sütunu"],
-        "color": "#818cf8",
         "rationale": "Belirgin üç kutulu silüet (motor, kabin ve yatay bagaj kapağı çıkıntısı) tespit edildi."
     },
     "HATCHBACK": {
         "title": "Hatchback (Kompakt 2-Kutu)",
-        "asset": "assets/classes/hatchback.jpg",
         "description": "Bagaj kapağı arka camla birlikte yukarı açılan, arka çıkıntısı kısa ve dik inen kompakt 2-kutu gövde.",
-        "key_features": ["Kısa Arka Çıkıntı", "Camla Açılan Bagaj", "Dikey Arka Hat"],
-        "color": "#c084fc",
         "rationale": "Kısa arka tekerlek çıkıntısı ve tavan arkasından dik eğimle inen bagaj kapağı geometrisi tespit edildi."
     },
     "STATION_WAGON": {
-        "title": "Station Wagon (Tourer / Genişletilmiş)",
-        "asset": "assets/classes/station_wagon.jpg",
+        "title": "Station Wagon (Estate / Tourer)",
         "description": "Sedan şasisi üzerine tavan çizgisi aracın en arkasına kadar uzatılmış, D-sütunu olan genişletilmiş bagajlı gövde.",
-        "key_features": ["Uzatılmış Tavan Çizgisi", "D-Sütunu & 3. Yan Cam", "Alçak Şasi + Dev Bagaj"],
-        "color": "#34d399",
         "rationale": "Arka aks hizasını aşan uzatılmış tavan hattı ve bagaj üzeri ek üçüncü yan cam profili tespit edildi."
     },
     "PICKUP": {
-        "title": "Pick-Up (Açık Kasalı Kamyonet)",
-        "asset": "assets/classes/pickup.jpg",
+        "title": "Pick-Up (Kamyonet)",
         "description": "Kabin arkasında açık yük taşıma kasası bulunan, merdiven şasili veya yüksek süspansiyonlu ticari/arazi aracı.",
-        "key_features": ["Açık Yük Kasası", "Ayrı Kabin-Kasa Ayrımı", "Yüksek Taşıma Şasisi"],
-        "color": "#fbbf24",
         "rationale": "Yolcu kabini ardındaki açık kargo kasası ve dik kabin arka cam ayrımı tespit edildi."
     },
     "VAN": {
         "title": "Van / Minibüs / MUV",
-        "asset": "assets/classes/van.jpg",
         "description": "Kutu formunda (box-type) yüksek tavanlı gövde, genellikle sürgülü yan kapı ve dik ön/arka yüzey.",
-        "key_features": ["Yüksek Kutu Tavan", "Sürgülü Yan Kapılar", "Kısa Ön Burun"],
-        "color": "#f87171",
         "rationale": "Dikey kutu tavan yüksekliği, dik burun açısı ve monoblok yüksek gövde yapısı tespit edildi."
     },
     "MICRO": {
         "title": "Micro / Şehir İçi Mini",
-        "asset": "assets/classes/micro.jpg",
         "description": "Ultra kompakt uzunluk (genellikle < 3 metre), 2 kişilik veya minimal şehir içi ulaşım aracı (Smart, Ami vb.).",
-        "key_features": ["Ultra Kısa Dingil Mesafesi", "Kompakt Gövde", "Hafif Şasi"],
-        "color": "#2dd4bf",
         "rationale": "Son derece kısa dingil mesafesi ve minyatür iki kişilik kabin oranı tespit edildi."
     },
     "ACIK_TEKERLEK": {
-        "title": "Açık Tekerlekli (Yarış / Spor)",
-        "asset": "assets/classes/acik_tekerlek.jpg",
-        "description": "Tekerlekleri çamurluk veya gövde panelleriyle örtülmemiş, aerodinamik yarış veya özel spor araç gövdesi (Formula, karting vb.).",
-        "key_features": ["Gövde Dışında Tekerlekler", "Kanat & Difüzör", "Monokok Kokpit"],
-        "color": "#f43f5e",
+        "title": "Açık Tekerlekli (Yarış / Formula)",
+        "description": "Tekerlekleri çamurluk veya gövde panelleriyle örtülmemiş, aerodinamik yarış veya özel spor araç gövdesi.",
         "rationale": "Gövde panellerinin dışında bağımsız asılı tekerlekler ve aerodinamik kanat geometrisi tespit edildi."
     }
 }
@@ -455,11 +369,11 @@ CLASS_METADATA = {
 def get_inference_device():
     try:
         import torch_directml
-        return torch_directml.device(), "AMD Radeon GPU (DirectML)"
+        return torch_directml.device(), "AMD Radeon DirectML"
     except Exception:
         if torch.cuda.is_available():
             return torch.device("cuda"), f"NVIDIA GPU ({torch.cuda.get_device_name(0)})"
-        return torch.device("cpu"), "İşlemci (Çok Çekirdekli CPU)"
+        return torch.device("cpu"), "Çok Çekirdekli CPU"
 
 
 def load_state_dict_safe(model_path, map_location):
@@ -473,7 +387,6 @@ def load_state_dict_safe(model_path, map_location):
 def load_system():
     device, device_name = get_inference_device()
     
-    # Model metadata
     info_path = Path("models/model_info.json")
     if info_path.exists():
         with open(info_path, "r", encoding="utf-8") as f:
@@ -490,7 +403,6 @@ def load_system():
     classes = model_info.get("classes", get_canonical_classes())
     num_classes = len(classes)
 
-    # ResNet-50 Mimari Kurulumu
     model = models.resnet50(weights=None)
     model.fc = nn.Sequential(
         nn.Linear(2048, 1024),
@@ -504,7 +416,6 @@ def load_system():
         nn.Linear(512, num_classes),
     )
 
-    # Ağırlıkları yükle
     model_path = Path("models/best_model.pt")
     if model_path.exists():
         state = load_state_dict_safe(str(model_path), map_location=device)
@@ -514,12 +425,10 @@ def load_system():
         return None, None, None, None, None, None
 
     model = model.to(device)
-    # Grad-CAM için gradyan akışını aç
     for p in model.parameters():
         p.requires_grad = True
     model.eval()
 
-    # Preprocessing
     preprocess_mode = resolve_preprocess(model_info)
     transform = build_eval_transform(preprocess_mode)
 
@@ -527,7 +436,7 @@ def load_system():
 
 
 # ============================================================================
-# GRAD-CAM (AÇIKLANABİLİR YAPAY ZEKA) MOTORU
+# GRAD-CAM MOTORU
 # ============================================================================
 class GradCAM:
     def __init__(self, model, target_layer):
@@ -570,7 +479,6 @@ class GradCAM:
 
 
 def render_cam_overlay(orig_image: Image.Image, cam_map: np.ndarray, colormap_name="turbo", alpha=0.45):
-    """Isı haritasını orijinal PIL görseli üzerine bindirir."""
     w, h = orig_image.size
     cam_img = Image.fromarray(np.uint8(255 * cam_map)).resize((w, h), Image.Resampling.BILINEAR)
     cam_arr = np.array(cam_img) / 255.0
@@ -591,11 +499,9 @@ def predict_with_tta(model, tensor, classes, device, use_tta=True):
 
     variants = [tensor]
     if use_tta:
-        # Yatay simetri
         flipped = torch.flip(tensor, dims=[3])
         variants.append(flipped)
         
-        # Kenar kırpmaları (tavan ve bagaj detayları)
         _, _, h, w = tensor.shape
         crop_px = int(w * 0.05)
         if crop_px > 0:
@@ -648,13 +554,13 @@ st.markdown(f"""
         <div class="brand-icon">🚗</div>
         <div>
             <div class="brand-title">AutoVision // Araç Gövde Sınıflandırma</div>
-            <div class="brand-desc">Derin Öğrenme Tabanlı Gövde Tipi Tespiti ve Görsel Açıklanabilirlik Kokpiti</div>
+            <div class="brand-desc">Derin Öğrenme Tabanlı Gövde Tespiti ve Açıklanabilir Yapay Zeka (XAI) Kokpiti</div>
         </div>
     </div>
     <div class="status-group">
         <div class="status-chip">
             <div class="pulse-dot"></div>
-            <span>MODEL: AKTİF (ResNet-50)</span>
+            <span>MODEL: ResNet-50</span>
         </div>
         <div class="status-chip">
             <span>⚡ {device_name}</span>
@@ -663,7 +569,7 @@ st.markdown(f"""
             <span>🎯 Doğruluk: %{model_info.get('test_accuracy', 0.8823)*100:.2f}</span>
         </div>
         <div class="status-chip">
-            <span>📈 F1-Skor: {model_info.get('test_f1_macro', 0.9076):.4f}</span>
+            <span>📈 Macro F1: {model_info.get('test_f1_macro', 0.9076):.4f}</span>
         </div>
     </div>
 </div>
@@ -671,22 +577,20 @@ st.markdown(f"""
 
 
 # ============================================================================
-# ANA ÇALIŞMA SEKMELERİ (TAMAMEN TÜRKÇE)
+# 3 ANA ODAKLANMIŞ ÇALIŞMA ALANI
 # ============================================================================
-tab_predict, tab_xai, tab_metrics, tab_gallery, tab_about = st.tabs([
-    "🎯 Gövde Tipi Tahmini ve Analiz",
-    "🧠 Model Odak Analizi (XAI)",
-    "📊 Başarım ve Hata Matrisi",
-    "🚘 8 Araç Gövde Tipi Rehberi",
-    "📑 Proje Raporu ve Künye",
+tab_predict, tab_metrics, tab_gallery = st.tabs([
+    "🎯 Gövde Tipi Tahmini ve XAI Analizi",
+    "📊 Model Başarımı ve Karışıklık Matrisi",
+    "📁 Veri Seti Galerisi",
 ])
 
 
 # ============================================================================
-# TAB 1: GÖVDE TİPİ TAHMİNİ VE ANALİZ
+# TAB 1: GÖVDE TİPİ TAHMİNİ VE XAI ANALİZİ
 # ============================================================================
 with tab_predict:
-    col_input, col_canvas, col_stats = st.columns([1, 1.8, 1.2])
+    col_input, col_canvas, col_stats = st.columns([1, 1.85, 1.15])
 
     # 1. SOL PANEL: GÖRSEL BESLEME VE SEÇENEKLER
     with col_input:
@@ -696,8 +600,8 @@ with tab_predict:
         """, unsafe_allow_html=True)
 
         source_choice = st.radio(
-            "Görsel Yükleme Yöntemi:",
-            ["📁 Bilgisayardan Dosya Seç", "🌐 Web Görsel Bağlantısı (URL)", "📸 Kameradan Canlı Çekim", "🎲 Test Setinden Rastgele Seç"],
+            "Yükleme Yolu:",
+            ["📁 Bilgisayardan Dosya Seç", "🌐 Web Görsel URL'si", "📸 Kameradan Canlı Çekim", "🎲 Test Setinden Rastgele Seç"],
             label_visibility="collapsed"
         )
 
@@ -707,7 +611,7 @@ with tab_predict:
 
         if "Bilgisayardan Dosya" in source_choice:
             uploaded_files = st.file_uploader(
-                "Görseli buraya bırakın veya seçin",
+                "Görsel yükleyin",
                 type=["jpg", "jpeg", "png", "webp", "bmp"],
                 accept_multiple_files=True,
                 label_visibility="collapsed"
@@ -717,10 +621,10 @@ with tab_predict:
                     try:
                         loaded_images.append((Image.open(f).convert("RGB"), f.name))
                     except Exception as e:
-                        st.error(f"Görsel yüklenemedi ({f.name}): {e}")
+                        st.error(f"Görsel okunamadı: {e}")
 
         elif "Web Görsel" in source_choice:
-            url_str = st.text_input("Görsel Web URL'sini yapıştırın:", placeholder="https://ornek.com/araba.jpg")
+            url_str = st.text_input("Görsel URL Bağlantısı:", placeholder="https://.../araba.jpg")
             if url_str:
                 try:
                     resp = requests.get(url_str, timeout=8)
@@ -728,7 +632,7 @@ with tab_predict:
                     loaded_images.append((img_web, "web_gorsel.jpg"))
                     st.success("✓ Görsel başarıyla indirildi")
                 except Exception as e:
-                    st.error(f"Görsel indirilemedi: {e}")
+                    st.error(f"URL yüklenemedi: {e}")
 
         elif "Kameradan Canlı" in source_choice:
             cam_data = st.camera_input("Fotoğraf Çekin")
@@ -754,14 +658,14 @@ with tab_predict:
         # İNCE AYARLAR
         st.markdown("""
         <div class="glass-card" style="margin-top: 15px;">
-            <div class="card-title">⚙️ Çıkarım Ayarları</div>
+            <div class="card-title">⚙️ Analiz Ayarları</div>
         """, unsafe_allow_html=True)
 
-        opt_tta = st.toggle("⚡ Çoklu Açı Desteği (4x TTA)", value=True, help="Tahmin hassasiyetini artırmak için görselin ayna ve kırpılmış varyantlarını harmanlar.")
-        opt_cam = st.toggle("🧠 Isı Haritası (Grad-CAM Açıklayıcı)", value=True, help="Modelin araca bakarken odaklandığı görsel bölgeleri renklendirir.")
+        opt_tta = st.toggle("⚡ Çoklu Açı Desteği (4x TTA)", value=True, help="Tahmin doğruluğunu artırmak için simetri ve kırpma varyantlarını harmanlar.")
+        opt_cam = st.toggle("🧠 Isı Haritası (Grad-CAM XAI)", value=True, help="Modelin araca bakarken en çok odaklandığı gövde bölgelerini gösterir.")
         
         if opt_cam:
-            c_map_choice = st.selectbox("Isı Haritası Renk Paleti:", ["turbo", "jet", "inferno", "plasma"], index=0)
+            c_map_choice = st.selectbox("Isı Haritası Paleti:", ["turbo", "jet", "inferno", "plasma"], index=0)
             c_alpha_val = st.slider("Isı Haritası Belirginliği:", min_value=0.15, max_value=0.85, value=0.45, step=0.05)
         else:
             c_map_choice = "turbo"
@@ -774,7 +678,7 @@ with tab_predict:
     with col_canvas:
         if not loaded_images:
             st.markdown("""
-            <div class="glass-card" style="text-align: center; padding: 80px 20px;">
+            <div class="glass-card" style="text-align: center; padding: 85px 20px;">
                 <div style="font-size: 3.2rem; margin-bottom: 12px;">📡</div>
                 <h3 style="font-family:'Space Grotesk'; color: #f8fafc; margin-bottom: 8px;">Analiz İçin Görsel Bekleniyor</h3>
                 <p style="color: #94a3b8; max-width: 440px; margin: 0 auto; font-size: 0.92rem; line-height: 1.6;">
@@ -815,7 +719,7 @@ with tab_predict:
             """, unsafe_allow_html=True)
 
             # GÖRÜNTÜLEME MODLARI
-            view_tabs = st.tabs(["⚡ Isı Haritası (Grad-CAM)", "🔍 Yan Yana Karşılaştırma", "🔥 Nöron Yoğunluk Haritası"])
+            view_tabs = st.tabs(["⚡ Isı Haritası (Grad-CAM)", "🔍 Yan Yana Karşılaştırma", "🔥 Nöron Aktivasyon Haritası"])
 
             inp_tensor = tensor_input.unsqueeze(0).to(device)
             cam_matrix, _ = gradcam_engine.generate(inp_tensor, target_class=pred_res["idx"])
@@ -891,7 +795,7 @@ with tab_predict:
             ))
             fig_rad.update_layout(
                 polar=dict(
-                    bgcolor="rgba(14, 20, 32, 0.7)",
+                    bgcolor="rgba(17, 24, 39, 0.7)",
                     radialaxis=dict(visible=True, range=[0, 1], gridcolor="rgba(255,255,255,0.08)"),
                     angularaxis=dict(gridcolor="rgba(255,255,255,0.08)")
                 ),
@@ -912,96 +816,21 @@ with tab_predict:
                         b_tensor = transform(b_img)
                         b_out = predict_with_tta(model, b_tensor, classes, device, use_tta=opt_tta)
                         batch_list.append({
-                            "Görsel Adı": b_name,
-                            "Tahmin Edilen Sınıf": b_out["class"],
+                            "Görsel": b_name,
+                            "Tahmin": b_out["class"],
                             "Güven": f"%{b_out['confidence']*100:.1f}",
                             "Süre": f"{b_out['inference_ms']:.1f} ms"
                         })
-                    df_b_table = pd.DataFrame(batch_list)
-                    st.dataframe(df_b_table, width='stretch', hide_index=True)
+                    st.dataframe(pd.DataFrame(batch_list), width='stretch', hide_index=True)
 
 
 # ============================================================================
-# TAB 2: MODEL ODAK VE TEŞHİS ANALİZİ (XAI)
-# ============================================================================
-with tab_xai:
-    st.subheader("🧠 Modelin Karar Verme Mantığı ve Karışıklık Analizi")
-    st.markdown("""
-    Araç gövde sınıflandırmasında bazı sınıflar doğası gereği birbirine çok yakındır. 
-    Yapay sinir ağının (ResNet-50) bu sınıfları birbirinden ayırırken **hangi gövde panellerine ve hatlarına** odaklandığını aşağıda görebilirsiniz:
-    """)
-
-    col_x1, col_x2, col_x3 = st.columns(3)
-
-    with col_x1:
-        st.markdown("""
-        <div class="glass-card">
-            <h4 style="color:#38bdf8;">🚗 Sedan vs 🚘 Hatchback</h4>
-            <p style="font-size:0.88rem; color:#94a3b8; line-height:1.6;">
-                <strong>Kritik Ayrım Noktası:</strong> Arka bagaj çıkıntısı.<br>
-                Model Sedan sınıfı için arka camdan sonra devam eden yatay bagaj kapağına odaklanırken, Hatchback sınıfında arka tekerleğin hemen üstünden dik inen bagaj kapağını arar.
-            </p>
-            <div style="background:rgba(255,255,255,0.04); padding:10px; border-radius:10px; font-size:0.82rem; color:#cbd5e1;">
-                ⚠️ Test Seti Karışma Oranı: %5.8 (En sık karışan çift)
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with col_x2:
-        st.markdown("""
-        <div class="glass-card">
-            <h4 style="color:#34d399;">🚐 Station Wagon vs 🚙 SUV</h4>
-            <p style="font-size:0.88rem; color:#94a3b8; line-height:1.6;">
-                <strong>Kritik Ayrım Noktası:</strong> Yerden yükseklik ve D-sütunu.<br>
-                Station Wagon araçlar binek otomobil (Sedan) alçaklığında bir şasiye sahipken tavanı en arkaya kadar uzanır. SUV ise yüksek zemin açıklığı ve iri çamurluklarıyla ayrışır.
-            </p>
-            <div style="background:rgba(255,255,255,0.04); padding:10px; border-radius:10px; font-size:0.82rem; color:#cbd5e1;">
-                ⚠️ Test Seti Karışma Oranı: %4.2 (Gövde uzunluğu benzerliği)
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with col_x3:
-        st.markdown("""
-        <div class="glass-card">
-            <h4 style="color:#fbbf24;">🛻 Pick-Up vs 🚙 SUV</h4>
-            <p style="font-size:0.88rem; color:#94a3b8; line-height:1.6;">
-                <strong>Kritik Ayrım Noktası:</strong> Kasa çizgisi ve cam ayrımı.<br>
-                Kasası kapakla kapatılmış Pick-Up'lar bazen SUV ile karıştırılabilir. Grad-CAM, yolcu kabini ile açık kasa arasındaki dikey gövde ayrımını analiz eder.
-            </p>
-            <div style="background:rgba(255,255,255,0.04); padding:10px; border-radius:10px; font-size:0.82rem; color:#cbd5e1;">
-                ⚠️ Test Seti Karışma Oranı: %2.1 (Açık kasada %97.4 Recall)
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("---")
-    st.markdown("### 🔬 Alternatif Sınıf Odak Simülatörü")
-    st.markdown("Modelin yüklediğiniz görseli farklı bir sınıf olarak yorumlaması durumunda **arabanın tam olarak neresine bakacağını** simüle edin:")
-
-    if loaded_images:
-        sim_left, sim_right = st.columns([1, 2])
-        with sim_left:
-            target_class_choice = st.selectbox("Hangi Sınıfın Odağını İncelemek İstersiniz?", classes, index=pred_res["idx"])
-            t_idx = classes.index(target_class_choice)
-            s_cam, _ = gradcam_engine.generate(inp_tensor, target_class=t_idx)
-            s_overlay, _ = render_cam_overlay(main_img, s_cam, colormap_name=c_map_choice, alpha=c_alpha_val)
-            
-            prob_for_choice = pred_res["probabilities"][t_idx]
-            st.metric(f"Modelin '{target_class_choice}' Tahmin İhtimali", f"%{prob_for_choice*100:.2f}")
-
-        with sim_right:
-            st.image(s_overlay, width='stretch', caption=f"Modelin '{target_class_choice}' İçin Baktığı Odak Noktası")
-    else:
-        st.info("Bu simülasyonu çalıştırmak için lütfen ilk sekmeden bir araç görseli yükleyin.")
-
-
-# ============================================================================
-# TAB 3: MODEL METRİKLERİ VE HATA MATRİSİ
+# TAB 2: MODEL BAŞARIMI VE KARIŞIKLIK MATRİSİ (GENİŞ, FERAH DÜZEN)
 # ============================================================================
 with tab_metrics:
-    st.subheader("📊 Model Test Başarımı ve Karışıklık Matrisi (Confusion Matrix)")
+    st.subheader("📊 Model Başarım Raporları ve Karışıklık Matrisi (Confusion Matrix)")
 
+    # 4 Üst Metrik Kartı
     col_m1, col_m2, col_m3, col_m4 = st.columns(4)
     with col_m1:
         st.metric("🎯 Test Doğruluğu (Accuracy)", f"%{model_info.get('test_accuracy', 0.8823)*100:.2f}")
@@ -1014,10 +843,48 @@ with tab_metrics:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    col_t_left, col_t_right = st.columns([1.2, 1])
+    # BÜYÜK VE FERAH KARIŞIKLIK MATRİSİ
+    st.markdown("""
+    <div class="glass-card">
+        <div class="card-title">🧩 İnteraktif Karışıklık Matrisi (Confusion Matrix - 8 Sınıf)</div>
+        <p style="font-size:0.88rem; color:#94a3b8; margin-top:-8px; margin-bottom:15px;">
+            Y ekseni gerçek sınıf etiketlerini, X ekseni ise modelin tahmin ettiği sınıfları gösterir. Köşegen üzerindeki sayılar doğru tahminleri, diğer alanlar ise sınıf karışıklıklarını temsil eder.
+        </p>
+    """, unsafe_allow_html=True)
+
+    cm_matrix = model_info.get("confusion_matrix")
+    if cm_matrix:
+        cm_np = np.array(cm_matrix)
+        fig_cm_large = px.imshow(
+            cm_np,
+            x=classes,
+            y=classes,
+            color_continuous_scale="Blues",
+            text_auto=True,
+            labels=dict(x="Model Tahmini", y="Gerçek Etiket", color="Araç Sayısı")
+        )
+        fig_cm_large.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            height=580,
+            font=dict(color="#f1f5f9", family="Plus Jakarta Sans", size=13),
+            margin=dict(l=20, r=20, t=20, b=20)
+        )
+        st.plotly_chart(fig_cm_large, width='stretch')
+    elif Path("reports/confusion_matrix.png").exists():
+        st.image(Image.open("reports/confusion_matrix.png"), width='stretch')
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # İKİ GENİŞ SÜTUN: METRİK TABLOSU VE ÇUBUK GRAFİĞİ
+    col_t_left, col_t_right = st.columns([1.1, 1.2])
 
     with col_t_left:
-        st.markdown("### 📋 Sınıf Bazında Performans Tablosu")
+        st.markdown("""
+        <div class="glass-card">
+            <div class="card-title">📋 Sınıf Bazında Başarım Metrikleri</div>
+        """, unsafe_allow_html=True)
+
         per_class_data = model_info.get("per_class_metrics", {})
         if per_class_data:
             df_pc = pd.DataFrame([
@@ -1038,8 +905,15 @@ with tab_metrics:
                 width='stretch',
                 hide_index=True
             )
+        st.markdown("</div>", unsafe_allow_html=True)
 
-            # Karşılaştırma grafiği
+    with col_t_right:
+        st.markdown("""
+        <div class="glass-card">
+            <div class="card-title">📊 Sınıf Başına Karşılaştırma Grafiği</div>
+        """, unsafe_allow_html=True)
+
+        if per_class_data:
             fig_compare_bar = px.bar(
                 df_pc.melt(id_vars="Sınıf", var_name="Metrik", value_name="Skor"),
                 x="Sınıf", y="Skor", color="Metrik", barmode="group",
@@ -1048,72 +922,22 @@ with tab_metrics:
             fig_compare_bar.update_layout(
                 paper_bgcolor="rgba(0,0,0,0)",
                 plot_bgcolor="rgba(0,0,0,0)",
-                height=340,
+                height=320,
                 font=dict(color="#cbd5e1"),
                 xaxis=dict(showgrid=False),
-                yaxis=dict(gridcolor="rgba(255,255,255,0.08)", range=[0.6, 1.0])
+                yaxis=dict(gridcolor="rgba(255,255,255,0.08)", range=[0.65, 1.0]),
+                margin=dict(l=10, r=10, t=10, b=10)
             )
             st.plotly_chart(fig_compare_bar, width='stretch')
-
-    with col_t_right:
-        st.markdown("### 🧩 Karışıklık Matrisi (Hangi Araç Nereye Gitti?)")
-        cm_matrix = model_info.get("confusion_matrix")
-        if cm_matrix:
-            cm_np = np.array(cm_matrix)
-            fig_cm_chart = px.imshow(
-                cm_np,
-                x=classes,
-                y=classes,
-                color_continuous_scale="Blues",
-                text_auto=True,
-                labels=dict(x="Model Tahmini", y="Gerçek Etiket", color="Araç Sayısı")
-            )
-            fig_cm_chart.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
-                height=450,
-                font=dict(color="#cbd5e1"),
-                margin=dict(l=0, r=0, t=10, b=0)
-            )
-            st.plotly_chart(fig_cm_chart, width='stretch')
-        elif Path("reports/confusion_matrix.png").exists():
-            st.image(Image.open("reports/confusion_matrix.png"), width='stretch')
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
 # ============================================================================
-# TAB 4: 8 ARAÇ GÖVDE TİPİ REHBERİ VE ÖRNEK GÖRSELLER
+# TAB 3: VERİ SETİ GALERİSİ
 # ============================================================================
 with tab_gallery:
-    st.subheader("🚘 Desteklenen 8 Araç Gövde Tipi ve Gerçek Örnekler")
-    st.markdown("Modelimizin sınıflandırdığı 8 temel gövde tipi, yapısal özellikleri ve veri setimizden seçilen net örnek fotoğraflar:")
-
-    # 8 Sınıf Kart Matrisi (Gerçek Görsellerle)
-    grid_cols = st.columns(4)
-    for i, cls in enumerate(classes):
-        meta = CLASS_METADATA.get(cls, {})
-        with grid_cols[i % 4]:
-            asset_path = Path(meta.get("asset", ""))
-            
-            # Kart Başlangıcı
-            badges = "".join([f'<span class="archetype-tag">{b}</span>' for b in meta.get("key_features", [])])
-            st.markdown(f"""
-            <div class="archetype-box">
-                <div class="archetype-content">
-                    <div class="archetype-name">{cls}</div>
-                    <div style="font-size:0.85rem; color:#00d2ff; font-weight:600; margin-bottom:6px;">{meta.get('title', '')}</div>
-                    <div class="archetype-desc">{meta.get('description', '')}</div>
-                    <div>{badges}</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Gerçek Örnek Görseli
-            if asset_path.exists():
-                st.image(Image.open(asset_path), caption=f"{cls} Temsili Görseli", width='stretch')
-
-    st.markdown("<br><hr>", unsafe_allow_html=True)
-    st.markdown("### 🖼️ Yerel Veri Seti Galeri Gezgini")
-    st.markdown("Bilgisayarınızdaki `test/`, `valid/` veya `train/` klasöründen rastgele görsel örnekleri yükleyin:")
+    st.subheader("📁 Veri Seti Galeri Gezgini")
+    st.markdown("Yerel veri setindeki (`test/`, `valid/` veya `train/`) gerçek araç fotoğraflarını eşit ve düzenli bir galeride inceleyin:")
 
     g_col_a, g_col_b = st.columns([1, 2])
     with g_col_a:
@@ -1129,61 +953,16 @@ with tab_gallery:
 
     if path_candidate.exists():
         files_found = [p for p in path_candidate.glob("*.*") if p.suffix.lower() in [".jpg", ".png", ".jpeg", ".webp"]]
-        st.markdown(f"**Yol:** `{path_candidate}` • Toplam: `{len(files_found)} Görsel`")
+        st.markdown(f"**Konum:** `{path_candidate}` • Toplam: `{len(files_found)} Görsel`")
         
         show_count = min(8, len(files_found))
         if show_count > 0:
-            picked_list = random.sample(files_found, show_count)
+            picked_list = sorted(files_found)[:show_count]
             cols_img = st.columns(4)
             for idx, p in enumerate(picked_list):
                 with cols_img[idx % 4]:
                     st.image(Image.open(p), caption=p.name, width='stretch')
     else:
-        st.warning(f"'{path_candidate}' yolu bulunamadı.")
+        st.warning(f"'{path_candidate}' klasörü bulunamadı.")
 
-
-# ============================================================================
-# TAB 5: PROJE RAPORU VE KÜNYE
-# ============================================================================
-with tab_about:
-    col_ab_l, col_ab_r = st.columns(2)
-
-    with col_ab_l:
-        st.markdown("""
-        <div class="glass-card">
-            <h3 style="color:#00d2ff; font-family:'Space Grotesk';">🧠 Derin Öğrenme Mimarisi</h3>
-            <ul style="color:#cbd5e1; line-height:1.9;">
-                <li><strong>Omurga Model (Backbone):</strong> ResNet-50 (ImageNet-1K Ön Eğitimli Transfer Learning)</li>
-                <li><strong>Residual / Kalıntı Bağlantılar:</strong> 50 katmanlı derin ağda kaybolan gradyanları önleyen shortcut yapıları.</li>
-                <li><strong>Özel Sınıflandırma Başlığı (FC Head):</strong><br>
-                    <code>Linear(2048 → 1024) → BatchNorm1d → ReLU → Dropout(0.5)</code><br>
-                    <code>Linear(1024 → 512) → BatchNorm1d → ReLU → Dropout(0.4)</code><br>
-                    <code>Linear(512 → 8) (Logits Çıkışı)</code>
-                </li>
-                <li><strong>Görüntü Ön İşleme (Letterbox):</strong> Araçların en-boy oranı bozulmadan gri dolgu (114, 114, 114) ile 224×224 piksele ölçekleme.</li>
-                <li><strong>Eğitim Ayarları:</strong> SGD w/ Momentum, LinearLR + ReduceLROnPlateau, Early Stopping (Sabır 15).</li>
-                <li><strong>Donanım Hızlandırma:</strong> AMD Radeon RX 6700XT üzerinde Windows DirectML (Torch-DirectML).</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with col_ab_r:
-        st.markdown("""
-        <div class="glass-card">
-            <h3 style="color:#8b5cf6; font-family:'Space Grotesk';">🎓 Akademik Proje Künyesi</h3>
-            <p style="color:#cbd5e1; line-height:1.6;">
-                Bu çalışma, Kocaeli Üniversitesi Mühendislik Fakültesi Bilgisayar Mühendisliği Bölümü 
-                <strong>Yazılım Laboratuvarı 2 (YazLab 2) 3. Proje</strong> kapsamında geliştirilmiştir.
-            </p>
-            <hr style="border-color:rgba(255,255,255,0.08);">
-            <div style="color:#cbd5e1; line-height:1.8;">
-                <p>👨‍💻 <strong>Berat Batuhan Şahin</strong> — <code>230201026</code></p>
-                <p>👨‍💻 <strong>Emirhan Çalık</strong> — <code>230201108</code></p>
-                <p>🏛️ <strong>Kocaeli Üniversitesi</strong> • Bilgisayar Mühendisliği</p>
-                <p>📄 <strong>Akademik Bildiri Raporu:</strong> IEEE Formatında Hazırlanan Proje Raporu (<code>rapor.tex</code>)</p>
-                <p>🏆 <strong>Elde Edilen Başarım:</strong> %88.23 Test Doğruluğu, 0.9076 Macro F1-Skor</p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-st.markdown("<br><p style='text-align:center; color:#64748b; font-size:0.85rem;'>AutoVision AI • Kocaeli Üniversitesi Bilgisayar Mühendisliği</p>", unsafe_allow_html=True)
+st.markdown("<br><p style='text-align:center; color:#64748b; font-size:0.85rem;'>AutoVision AI • Görüntü İşleme ve Derin Öğrenme Sistemi</p>", unsafe_allow_html=True)

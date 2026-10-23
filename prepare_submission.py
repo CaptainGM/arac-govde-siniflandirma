@@ -33,14 +33,11 @@ def compress_model_to_fp16(src_model_path, dst_model_path):
 
 def main():
     print("=" * 80)
-    print("🎓 YAZLAB 2 PROJE 3 - OTOMATİK TESLİMAT HAZIRLAMA ARACI")
+    print("📦 MODEL TESLİMAT VE SIKIŞTIRMA ARACI")
     print("=" * 80)
     
-    
-    print("\nLütfen teslimat klasörü ismi için öğrenci numaralarını girin.")
-    print("Örnek: Tek kişi için '220201001', çift kişi için '220201001_220201002'")
-    
-    student_input = input("Klasör İsmi (örn. 220201001_220201002): ").strip()
+    print("\nLütfen teslimat klasörü ismi girin (Örn: 'teslimat'):")
+    student_input = input("Klasör İsmi: ").strip()
     if not student_input:
         print("⚠️ Giriş yapılmadı!")
         folder_name = "teslimat"
