@@ -10,17 +10,59 @@ Araç fotoğraflarından gövde tipini (**SUV, Sedan, Hatchback, Station Wagon, 
 
 ---
 
-## 📸 Uygulama Arayüzü ve Paneller
+## 📸 Canlı Uygulama Arayüzü ve Sistem Panelleri
 
-### 1. Gövde Tipi Tahmini ve Canlı Grad-CAM XAI Isı Haritası
-Model sadece tahmin üretmekle kalmaz; aracın gövdesini sınıflandırırken **aracın tam olarak neresine baktığını** (kasa çizgisi, bagaj eğimi, tavan yüksekliği vb.) canlı ısı haritası katmanıyla görselleştirir.
+### 1. Gövde Tipi Tahmini, Canlı Grad-CAM XAI Isı Haritası ve Telemetri Kokpiti
+Model sadece sınıf tahmini üretmekle kalmaz; son evrişim bloğundaki (`layer4[-1]`) aktivasyon gradyanları üzerinden **aracın tam olarak neresine odaklandığını** (yerden yükseklik, bagaj çıkıntısı, tavan çizgisi, açık tekerlekler) canlı olarak görselleştirir. Aynı anda sınıf olasılık spektrumu ve radar geometri profilini anlık telemetri olarak sunar.
 
-![Gövde Tipi Tahmini ve Grad-CAM Isı Haritası](tahmin-yap-sekmesi.png)
+![AutoVision Kokpit Genel Görünümü](assets/screenshots/01_dashboard_overview.png)
 
-### 2. Genişletilmiş Karışıklık Matrisi ve Telemetri Paneli
-Modelin 8 sınıf arasındaki eşleşme doğruluğunu, hangi araçların hangi sınıflarla karıştığını ve F1/Precision/Recall dağılımlarını gösteren interaktif analiz paneli.
+---
 
-![Karışıklık Matrisi ve Performans Grafikleri](grafikler-sekmesi.png)
+### 2. Açıklanabilir Yapay Zeka (XAI): Yan Yana Teşhis Modu
+Orijinal araç görseli ile yapay zekanın odak katmanı piksel piksel yan yana karşılaştırılır.
+
+![XAI Yan Yana Karşılaştırma](assets/screenshots/02_xai_comparison_sidebyside.png)
+
+---
+
+### 3. Farklı Gövde Tiplerinde Model Çıkarım Örnekleri
+
+| Açık Tekerlek (Formula / Yarış - %96.8 Güven) | Pick-Up (Açık Kargo Kasası - %96.5 Güven) |
+|:---:|:---:|
+| ![Açık Tekerlek Çıkarımı](assets/screenshots/05_inference_openwheel.png) | ![Pick-Up Çıkarımı](assets/screenshots/04_inference_pickup.png) |
+
+| Sedan (Klasik 3-Kutu Silüet) | Van (Ticari Monoblok Gövde) |
+|:---:|:---:|
+| ![Sedan Çıkarımı](assets/screenshots/03_inference_sedan.png) | ![Van Çıkarımı](assets/screenshots/06_inference_van.png) |
+
+---
+
+### 4. İnteraktif Karışıklık Matrisi (Confusion Matrix) ve Performans Paneli
+8 gövde sınıfı arasındaki çapraz tahmin dağılımlarını, sınıf bazında F1-skor, Precision ve Recall değerlerini ve karşılaştırmalı başarım grafiklerini sunar.
+
+![Karışıklık Matrisi ve Başarım Paneli](assets/screenshots/10_confusion_matrix_dashboard.png)
+
+---
+
+### 5. 8 Araç Gövde Tipi Standartları ve Teşhis Rehberi
+Her bir araç gövde tipinin geometrik standartları (A/B/C/D sütunları, taban yüksekliği, bagaj mimarisi) ve tek tıkla doğrudan model analizine gönderme desteği.
+
+![8 Araç Gövde Tipi Rehberi](assets/screenshots/11_vehicle_body_guide.png)
+
+---
+
+### 6. Eşit Kart Izgaralı Veri Seti Galeri Gezgini
+Yerel veri setindeki (`test/`, `valid/`, `train/`) gerçek araç fotoğraflarını eşit en-boy oranında, basamak atlamasız (staircase-free) kart ızgarasında inceleme ve doğrudan modelde test etme imkânı.
+
+![Veri Seti Galeri Gezgini](assets/screenshots/12_dataset_gallery_explorer.png)
+
+---
+
+### 7. Sistem Mimarisi ve Teknik Rapor
+ResNet-50 derin artık öğrenme omurgası, özel 3 katmanlı MLP sınıflandırıcı başlığı, AMD Radeon DirectML GPU hızlandırma ve Grad-CAM matematiksel formülasyonu.
+
+![Sistem Mimarisi ve Rapor](assets/screenshots/13_system_architecture_report.png)
 
 ---
 
@@ -28,14 +70,15 @@ Modelin 8 sınıf arasındaki eşleşme doğruluğunu, hangi araçların hangi s
 
 * **Derin Öğrenme Omurgası:** ResNet-50 mimarisi üzerine özel tasarlanmış tam bağlantılı sınıflandırma katmanı (`2048 → 1024 → 512 → 8 Sınıf`, BatchNorm1d + ReLU + Dropout).
 * **Açıklanabilir Yapay Zeka (Grad-CAM XAI):** ResNet-50 son evrişim katmanından (`layer4[-1]`) türetilen ısı haritaları sayesinde modelin kararları doğrulanabilir ve şeffaftır.
-* **4x Test-Time Augmentation (TTA):** Tahmin anında yatay simetri ve kenar kırpmalarıyla çoklu varyant ortalaması alarak sınıflandırma kararlılığı sağlar.
+* **4x Test-Time Augmentation (TTA):** Tahmin anında orijinal, yatay ayna ve kenar kırpmaları olmak üzere 4 varyant ortalaması alarak çıkarım kararlılığı sağlar.
 * **Letterboxing (En-Boy Oranı Koruma):** Araç fotoğraflarının en-boy oranını bozmadan 224×224 boyutunda kareye tamamlar.
 * **Donanım Hızlandırması:** Windows üzerinde **AMD Radeon DirectML (`torch-directml`)**, **NVIDIA CUDA** ve **Çok Çekirdekli CPU** otomatik algılama desteği (~50 ms çıkarım gecikmesi).
-* **4 Farklı Girdi Modu:**
-  1. 📁 Bilgisayardan tekli / çoklu dosya sürükle-bırak
-  2. 🌐 Doğrudan web görsel bağlantısı (URL) ile test
-  3. 📸 Web kamerasından anlık canlı araç çekimi
-  4. 🎲 Test veri setinden tek tıkla rastgele araç çekme simülasyonu
+* **5 Farklı Girdi Modu:**
+  1. ⚡ Hazır Örnek Araçlar (SUV, Sedan, Pick-Up, Açık Tekerlek, Van, Micro vb. tek tıkla test)
+  2. 📁 Bilgisayardan tekli / çoklu dosya yükleme
+  3. 🌐 Doğrudan web görsel bağlantısı (URL) ile test
+  4. 🎲 Test veri setinden rastgele araç getirme
+  5. 📸 Web kamerasından anlık canlı araç çekimi
 
 ---
 
@@ -51,7 +94,7 @@ Model, eğitim sırasında hiç görmediği **1.437 adet bağımsız test görse
 | **F1-Skor (Weighted Average)** | **0.8827** |
 | **Kesinlik (Precision - Macro)** | **0.9100** |
 | **Duyarlılık (Recall - Macro)** | **0.9066** |
-| **Ortalama Çıkarım Gecikmesi** | **~54 ms** (AMD DirectML GPU) |
+| **Ortalama Çıkarım Gecikmesi** | **~54 ms** (AMD Radeon DirectML GPU) |
 
 ### Sınıf Bazında Metrik Dağılımı
 | Sınıf | F1-Skor | Kesinlik (Precision) | Duyarlılık (Recall) |
